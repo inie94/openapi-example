@@ -1,0 +1,149 @@
+openapi: "3.0.0"
+tags:
+  - name: Store
+    description: Тег магазина
+info:
+  title: API Abstract Store
+  version: 1.0.0
+  description: Апи абстрактного магазина
+  termsOfService: StoreService
+#servers:
+#  - url: http://localhost:8080/v1
+paths:
+  /order:
+    get:
+      summary: Получение заказа
+      operationId: getOrder
+      parameters:
+        - name: id
+          description: Идентификатор заказа
+          in: path
+          required: true
+          content:
+            application/json:
+              schema:
+                type: integer
+      responses:
+        200:
+          description: Заказ найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {id: 123456789, status: 0, positions: [{product: {id: 3216547, name: Батарейки}, size: 12}]}
+        400:
+          description: Ошибка валидации запроса
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {status: 1, error: {code: 0, messages: ["Поле id не заполнено"]}}
+        422:
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {status: 1, error: {code: 1, messages: ["Заказ с id = 123456789 не найден"]}}
+        500:
+          description: Неизвестная ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {status: 1, error: {code: 2, messages: ["Ошибка при получении заказа"]}}
+    post:
+      summary: Создание заказа
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Order"
+      responses:
+        200:
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {id: 123456789, status: 0, positions: [{product: {id: 3216547, name: Батарейки}, size: 12}]}
+        400:
+          description: Ошибка валидации запроса
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {status: 1, error: {code: 0, messages: ["Список продуктов не заполнен"]}}
+        500:
+          description: Неизвестная ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example: {status: 1, error: {code: 2, messages: ["Ошибка при получении заказа"]}}
+components:
+  schemas:
+    Order:
+      description: Заказ
+      type: object
+      required:
+        - positions
+      properties:
+        id:
+          type: integer
+          format: int64
+        status:
+          type: integer
+        error:
+          $ref: "#/components/schemas/Error"
+        positions:
+          description: Список продуктов
+          type: array
+          items:
+            $ref: "#/components/schemas/Position"
+    Error:
+      description: Ошибка операции
+      type: object
+      properties:
+        code:
+          description: Код ошибки
+          type: integer
+        messages:
+          description: Сообщения о ошибке
+          type: array
+          items:
+            type: string
+    Position:
+      description: Позиция заказа
+      type: object
+      required:
+        - product
+        - size
+      properties:
+        product:
+          $ref: "#/components/schemas/Product"
+        size:
+          description: Количество
+          type: integer
+          minimum: 1
+    Product:
+      description: Продукт
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          description: Идентификатор продукта
+          type: integer
+          format: int64
+        name:
+          description: Наименование продукта
+          type: string
+          x-field-extra-annotation: "@javax.validation.constraints.NotBlank"
+        info:
+          description: Информация о продукте
+          type: string
+
